@@ -1,18 +1,24 @@
 import streamlit as st
 import pickle
 import pandas as pd
+import os
 
-movies = pickle.load(open('movies_dict.pkl', 'rb'))
-movies = pd.DataFrame(movies)
+# Load movies data
+movies_dict = pickle.load(open('movies_dict.pkl', 'rb'))
+movies = pd.DataFrame(movies_dict)
 
-similarity = pickle.load(open('similarity.pkl', 'rb'))
+# Check similarity file
+if os.path.exists('similarity.pkl'):
+    similarity = pickle.load(open('similarity.pkl', 'rb'))
+else:
+    similarity = None
 
+# Recommendation function
 def recommend(movie):
-    try:
-        movie_index = movies[movies['title'] == movie].index[0]
-    except:
-        return []
+    if similarity is None:
+        return ["similarity.pkl file not found"]
 
+    movie_index = movies[movies['title'] == movie].index[0]
     distances = similarity[movie_index]
 
     movies_list = sorted(
@@ -28,7 +34,7 @@ def recommend(movie):
 
     return recommended_movies
 
-
+# Streamlit UI
 st.title("🎬 Movie Recommendation System")
 
 selected_movie = st.selectbox(
@@ -42,4 +48,4 @@ if st.button("Recommend"):
     st.subheader("Recommended Movies:")
 
     for movie in recommendations:
-        st.success(movie)
+        st.write(movie)
